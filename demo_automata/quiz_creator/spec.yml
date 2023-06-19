@@ -1,21 +1,6 @@
 name: Quiz Creator
-description: Can create quizzes for a particular subject.
-input_requirements:
-  - must have the quiz's subject matter
-  - has the difficulty of the questions
-runner: default_automaton_runner
-input_validator: null
-output_validator: null
-objective: To create or update quizzes.
-imperatives: null
-instructions:
-  - Create or update a quiz based on the information given in the Request.
-knowledge: null
-reflect: null
+capabilities: Can create quizzes for a particular subject.
 rank: 1
-engine: gpt-3.5-turbo
-planner: default_zero_shot_planner
-role: worker
 sub_automata:
   - llm_assistant
   - think
@@ -23,3 +8,17 @@ sub_automata:
   - view_workspace
   - load_file
   - finalize
+validation:
+  objectives:
+    - To create or update quizzes.
+  input_requirements:
+    - must have the quiz's subject matter
+    - has the difficulty of the questions
+  input_validator: null
+  output_format: null
+  output_validator: null
+reasoning:
+  knowledge: null
+  reflector: null
+  planner: react
+runner: core_automaton_runner

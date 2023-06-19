@@ -5,7 +5,8 @@ import json
 from pathlib import Path
 from typing import Callable, Dict, Tuple, Union
 
-from automata.utilities import generate_timestamp_id
+from .types import AutomatonRunner
+from .utilities import generate_timestamp_id
 
 def save_event(event: Dict[str, str], automaton_id: str, automata_location: Path, session_id: str):
     """Save an event to the event log of an automaton."""
@@ -16,39 +17,33 @@ def save_event(event: Dict[str, str], automaton_id: str, automata_location: Path
 
 
 def add_session_handling(
-    run: Callable,
+    run: AutomatonRunner,
     *,
     automaton_id: str,
     automata_location: Path,
     session_id: str,
-    full_name: str,
-    input_validator: Union[Callable[[str], Tuple[bool, str]], None],
+    automaton_name: str,
     requester_id: str,
     requester_session_id: str,
-) -> Callable:
+) -> AutomatonRunner:
     """Handle errors and printouts during execution of a query."""
-    preprint = f"\n\n---{full_name}: Start---"
-    postprint = f"\n\n---{full_name}: End---"
+    preprint = f"\n\n---{automaton_name}: Start---"
+    postprint = f"\n\n---{automaton_name}: End---"
 
     @functools.wraps(run)
-    def wrapper(*args, **kwargs):
-        if input_validator:
-            valid, error = input_validator(args[0])
-        if input_validator and not valid:
-            result = error
-        else:
-            print(preprint)
-            try:
-                result = run(*args, **kwargs)
-            except KeyboardInterrupt:
-                # manual interruption should escape back to the requester
-                result = f"Sub-automaton `{full_name}` took too long to process and was manually stopped."
-            print(postprint)
+    async def wrapper(request: str):
+        print(preprint)
+        try:
+            result = await run(request)
+        except KeyboardInterrupt:
+            # manual interruption should escape back to the requester
+            result = f"Sub-automaton `{automaton_name}` took too long to process and was manually stopped."
+        print(postprint)
 
         event = {
             "requester": requester_id,
             "sub_automaton_name": automaton_id,
-            "input": args[0],
+            "input": request,
             "result": result,
             "timestamp": generate_timestamp_id(),
         }

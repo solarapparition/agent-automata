@@ -1,48 +1,88 @@
 """Type definitions for automaton components."""
 
+# pylint: disable=unnecessary-ellipsis, too-few-public-methods
+
+from dataclasses import dataclass
 from typing import (
     Any,
-    Callable,
-    Dict,
-    NamedTuple,
     Protocol,
-    Sequence,
     Tuple,
+    Sequence,
     Union,
 )
 
 
-class Automaton(Protocol):
-    """Protocol for automata. Uses the same interface as the Langchain `Tool` class."""
+class AutomatonRunner(Protocol):
+    """Represents the run function of an automaton."""
+
+    async def __call__(self, request: str) -> str:
+        """Run the automaton on the given request."""
+        ...
+
+
+@dataclass(frozen=True)
+class Automaton:
+    """Represents an automaton."""
+
+    id: str
+    """Unique identifier for the automaton."""
 
     name: str
     """Name of the automaton. Viewable to requesters."""
-    run: Callable[[str], str]
-    """Function that takes in a query and returns a response."""
-    description: str
-    """Description of the automaton. Viewable to requesters."""
 
-class AutomatonRunner(Protocol):
-    """Represents a function that runs an automaton with a given request."""
+    run: AutomatonRunner
+    """Async function that takes in a query and returns a response."""
 
-    def __call__(
-        self,
-        automaton_id: str,
-        automaton_data: Dict[str, Any],
-        requester_id: str,
-        *args,
-        **kwargs,
-    ) -> str:
+    capabilities: str
+    """Description of what the automaton can do."""
+
+    input_requirements: Sequence[Any]
+    """Requirements for the input to the automaton."""
+
+    output_format: Any
+    """Format of the output of the automaton."""
+
+@dataclass(frozen=True)
+class AutomatonStep:
+    """Represents a step in an automaton's execution."""
+
+    ...
+
+
+class Engine(Protocol):
+    """Interface for a language model."""
+
+    async def __call__(self, prompt: str) -> str:
+        """Run the language model on the given prompt."""
         ...
 
-class AutomatonAction(NamedTuple):
-    """An action for an automaton."""
 
-    tool: str
-    tool_input: str
-    log: str
-    reflection: Union[str, None]
+class IOValidator(Protocol):
+    """Represents an LLM-based validation function for validating whether inputs or outputs adhere to requirements."""
+
+    requirements: Sequence[Any]
+
+    async def __call__(self, value_to_validate: str) -> Tuple[bool, str]:
+        """Validate the given input or output."""
+        ...
 
 
-AutomatonStep = Tuple[AutomatonAction, str]
-AutomatonReflector = Callable[[Sequence[AutomatonStep], str], Union[str, None]]
+class Knowledge(Protocol):
+    """Represents an automaton's knowledge base."""
+
+    async def __call__(self, topic: str) -> str:
+        """Retrieve information relating to a topic from the knowledge base."""
+        ...
+
+
+class Reflector(Protocol):
+    """Represents an automaton's ability to reflect on previous events and retrieve useful information related to its current task."""
+
+    async def __call__(
+        self,
+        request: str,
+        steps_taken: Sequence[AutomatonStep],
+        knowledge: Union[Knowledge, None],
+    ) -> Sequence[str]:
+        """Reflect on the given prompt."""
+        ...

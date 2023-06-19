@@ -1,20 +1,17 @@
-"""Functionality for validating input for automata."""
+"""Built-in validators for automata."""
 
 import ast
 from functools import partial
 import json
-from pathlib import Path
-from typing import Callable, Dict, List, Tuple, Union
+from typing import Callable, Mapping, Sequence, Set, Tuple
 
-from automata.loaders import get_full_name
-from automata.engines import create_engine
-from automata.llm_function import make_llm_function
+from automata.types import Engine, IOValidator
+from automata.utilities.llm_function import make_llm_function
 
-
-IOValidator = Callable[[str], Tuple[bool, str]]
+BUILTIN_VALIDATORS: Set[str] = set()
 
 
-def inspect_input(input: str, requirements: List[str]) -> Dict[str, str]:
+def inspect_input(input: str, requirements: Sequence[str]) -> Mapping[str, str]:
     """
     Validate whether the input for a function adheres to the requirements of the function.
 
@@ -58,7 +55,7 @@ def inspect_input(input: str, requirements: List[str]) -> Dict[str, str]:
 
 
 def validate_input(
-    run_input: str, input_inspector: Callable[[str], str], full_name: str
+    run_input: str, input_inspector: Callable[[str], str], requirements: Sequence[str]
 ) -> Tuple[bool, str]:
     """Validate input against input requirements, using an input inspector. The input inspector is intended to be powered by an LLM."""
     expected_output_keys = ["success", "message"]
@@ -77,7 +74,7 @@ def validate_input(
             return True, ""
         return (
             output["success"],
-            f"{full_name}: {output['message']} Please check the input requirements of this automaton and try again.",
+            f"Input validation failed: {output['message']}. The requirements were:\n{requirements}",
         )
     except KeyError as error:
         raise ValueError(
@@ -85,41 +82,26 @@ def validate_input(
         ) from error
 
 
-def load_input_validator(
-    validator_data: Union[Dict, None], requirements: List[str], automaton_id: str, automata_location: Path
-) -> Union[IOValidator, None]:
-    """Load the input validator based on data given."""
-    if validator_data is None:
-        return None
-    engine = validator_data["engine"]
-    logic = validator_data["logic"]
-    if not (engine and logic):
-        raise ValueError(
-            f"Must specify both `engine` and `logic` for input validator. Please check specs for `{automaton_id}`."
-        )
+def load_builtin_validator(
+    name: str, requirements: Sequence[str], engine: Engine
+) -> IOValidator:
+    """Load a builtin validator."""
 
-    if logic == "default_llm_validator":
-        input_inspector = make_llm_function(inspect_input, model=create_engine(engine))
+    if name == "default_llm_validator":
+        from langchain.llms import BaseLLM
+
+        if not isinstance(engine, BaseLLM):
+            raise ValueError(
+                f"Engine for validator `default_llm_validator` must be a LangChain `BaseLLM` object. Got {type(engine)} instead."
+            )
+        input_inspector = make_llm_function(inspect_input, model=engine)
         input_inspector = partial(input_inspector, requirements=requirements)
         return partial(
             validate_input,
             input_inspector=input_inspector,
-            full_name=get_full_name(automaton_id, automata_location),
-        )
-    raise ValueError(f"{automaton_id}: Logic `{logic}` not supported yet.")
-
-
-def load_output_validator(
-    validator_data: Union[Dict, None], request: str, file_name: str
-) -> Union[IOValidator, None]:
-    """Load the input validator based on data given."""
-    if validator_data is None:
-        return None
-    engine = validator_data["engine"]
-    logic = validator_data["logic"]
-    if not (engine and logic):
-        raise ValueError(
-            f"Must specify both `engine` and `logic` for output validator. Please check specs for `{file_name}`."
+            requirements=requirements,
         )
 
-    raise ValueError(f"{file_name}: Logic `{logic}` not supported yet.")
+    raise ValueError(
+        f"Validator {name} not part of builtin validators: `{BUILTIN_VALIDATORS}`"
+    )

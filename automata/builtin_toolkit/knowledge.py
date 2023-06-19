@@ -1,0 +1,15 @@
+"""Builtin knowledge bases that can be used by automata."""
+
+from typing import Set
+
+from automata.types import Knowledge
+
+BUILTIN_KNOWLEDGE: Set[str] = set()
+
+
+def load_builtin_knowledge(name: str) -> Knowledge:
+    """Load a builtin engine."""
+
+    raise ValueError(
+        f"Knowledge base {name} not part of builtin knowledge bases: `{BUILTIN_KNOWLEDGE}`"
+    )

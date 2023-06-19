@@ -1,12 +1,28 @@
 """Create various engines for automata to use."""
 
-from langchain.chat_models import ChatOpenAI
-from langchain.llms import BaseLLM
+from functools import lru_cache
+from pathlib import Path
+from typing import Union
 
-def create_engine(engine: str) -> BaseLLM:
-    """Create the model to use."""
-    if engine is None:
+from .types import Engine
+from .utilities import quick_import
+from .builtin_toolkit.engines import BUILTIN_ENGINES, load_builtin_engine
+
+
+@lru_cache(maxsize=None)
+def _load_engine(automaton_path: Path, name: Union[str, None]) -> Union[Engine, None]:
+    if name is None:
         return None
-    if engine in ["gpt-3.5-turbo", "gpt-4"]:
-        return ChatOpenAI(temperature=0, model_name=engine)
-    raise ValueError(f"Engine {engine} not supported yet.")
+
+    if name.endswith(".py"):
+        return quick_import(automaton_path / name).load()
+
+    try:
+        return load_builtin_engine(name)
+    except ValueError as error:
+        raise error
+
+
+def load_engine(automaton_path: Path, name: Union[str, None]) -> Union[Engine, None]:
+    """Load the engine for an automaton."""
+    return _load_engine(automaton_path, name)
