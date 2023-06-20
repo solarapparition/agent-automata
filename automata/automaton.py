@@ -40,7 +40,7 @@ def _load_automaton(  # pylint: disable=too-many-locals
     automaton_path = automata_location / automaton_id
     automaton_data = load_automaton_data(automaton_path)
     name: str = automaton_data["name"]
-    capabilities: str = automaton_data["capabilities"]
+    description: str = automaton_data["description"]
 
     validation_data = automaton_data["validation"]
     input_validator_data = validation_data["input_validator"]
@@ -148,7 +148,7 @@ def _load_automaton(  # pylint: disable=too-many-locals
         id=automaton_id,
         name=name,
         run=run,
-        capabilities=capabilities,
+        description=description,
         input_requirements=input_requirements,
         output_format=output_format,
     )

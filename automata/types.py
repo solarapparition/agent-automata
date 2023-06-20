@@ -34,7 +34,7 @@ class Automaton:
     run: AutomatonRunner
     """Async function that takes in a query and returns a response."""
 
-    capabilities: str
+    description: str
     """Description of what the automaton can do."""
 
     input_requirements: Sequence[Any]
@@ -54,7 +54,7 @@ class AutomatonStep:
 class Engine(Protocol):
     """Interface for a language model."""
 
-    async def __call__(self, prompt: str) -> str:
+    async def __call__(self, prompt: str, **kwargs: Any) -> str:
         """Run the language model on the given prompt."""
         ...
 

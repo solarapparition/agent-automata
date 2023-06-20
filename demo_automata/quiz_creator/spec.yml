@@ -1,5 +1,5 @@
 name: Quiz Creator
-capabilities: Can create quizzes for a particular subject.
+description: Can create quizzes for a particular subject.
 rank: 1
 sub_automata:
   - llm_assistant

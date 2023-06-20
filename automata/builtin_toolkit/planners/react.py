@@ -1,9 +1,11 @@
 """Planner adapted from the ReAct framework."""
 
-from typing import Sequence, Union
+from string import ascii_lowercase
+from typing import Any, Mapping, Sequence, Union
+
 from automata.types import AutomatonStep, AutomatonAction, Engine
 
-PROMPT = """You are simulating the output of an "Automaton" called `{name}`. Automata are advanced AI agent capable of fulfilling requests in a predictable way.
+DIRECTIVES = """You are simulating the output of an "Automaton" called `{name}`. Automata are advanced AI agent capable of fulfilling requests in a predictable way.
 
 Request: `{name}` has been asked to complete the following Request:
 {request}
@@ -26,15 +28,30 @@ Reasoning Thoughtcycle:
 ```
 
 General instructions regarding the `{name}`'s work process:
-- `{name}` always adheres to the Input Requirements of the sub-automata you use
+- `{name}` always adheres to the Input Requirements of the Sub-Automata it uses
 - `{name}`'s output always follows the format of the thoughtcycle defined above
 - when `{name}` receives a reply from a Sub-Automaton, it will always parse the reply and use it to update its Progress Record
 - if `{name}` completes the request and OR it determines that the Request cannot be completed, it uses the `Finalize Reply` Sub-Automaton to report its result back to the requester
 
 Begin the simulation of `{name}` below, after the divider. Do not include any other text besides what `{name}` would output."""
 
+SUB_AUTOMATON_DESCRIPTION = """`{sub_automaton_name}`:
+- Description: {description}
+- Input Requirements:
+  {input_requirements}"""
 
-from typing import Any, Mapping
+PROGRESS_INTRO = """
+
+---`{name}`: Thoughtcycle---
+
+1. Reflection:
+{reflection}
+
+2. Progress Record:"""
+
+PREVIOUS_STEPS = """{progress_intro}
+{steps_text}"""
+
 
 async def react_planner(
     request: str,
@@ -46,17 +63,41 @@ async def react_planner(
 ) -> AutomatonAction:
     """Planner adapted from the ReAct framework."""
 
+    sub_automata_names = [f'"{data["name"]}"' for data in sub_automata_data.values()]
 
-    sub_automata_names = ", ".join(f'"{data["name"]}"' for data in sub_automata_data.values()),
-    breakpoint()
-    prompt = PROMPT.format(
-        name=automaton_data["name"],
+    sub_automata_descriptions = [
+        SUB_AUTOMATON_DESCRIPTION.format(
+            sub_automaton_name=data["name"],
+            description=data["description"],
+            input_requirements="\n  ".join(
+                f"{letter}. {requirement}"
+                for letter, requirement in zip(
+                    ascii_lowercase, data["input_requirements"]
+                )
+            ),
+        )
+        for data in sub_automata_data.values()
+    ]
+
+    automaton_name = automaton_data["name"]
+
+    directives = DIRECTIVES.format(
+        name=automaton_name,
         request=request,
-        sub_automata_names=sub_automata_names,
-
-
+        sub_automata_names=", ".join(sub_automata_names),
+        sub_automata_descriptions="\n".join(sub_automata_descriptions),
     )
-    sub_automata_descriptions
+    progress_intro = PROGRESS_INTRO.format(
+        name=automaton_name,
+        reflection="\n".join(f" -{line}" for line in reflection)
+        if reflection
+        else "N/A",
+    )
 
-    
+    previous_steps_text = ""
+    prompt = directives + previous_steps_text + progress_intro
+    result = await engine(prompt, stop=["Result:", "---"])
+
+
+
     breakpoint()
