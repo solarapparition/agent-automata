@@ -20,5 +20,7 @@ validation:
 reasoning:
   knowledge: null
   reflector: null
-  planner: react
+  planner:
+    name: react
+    engine: gpt-3.5-turbo
 runner: core_automaton_runner

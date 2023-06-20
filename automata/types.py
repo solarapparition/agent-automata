@@ -5,6 +5,7 @@
 from dataclasses import dataclass
 from typing import (
     Any,
+    Mapping,
     Protocol,
     Tuple,
     Sequence,
@@ -41,6 +42,7 @@ class Automaton:
 
     output_format: Any
     """Format of the output of the automaton."""
+
 
 @dataclass(frozen=True)
 class AutomatonStep:
@@ -85,4 +87,30 @@ class Reflector(Protocol):
         knowledge: Union[Knowledge, None],
     ) -> Sequence[str]:
         """Reflect on the given prompt."""
+        ...
+
+
+@dataclass(frozen=True)
+class AutomatonAction:
+    """Represents an action for an automaton."""
+
+    sub_automaton_id: str
+    """ID of the sub-automaton to run."""
+
+    sub_automaton_request: str
+    """Request to send to the sub-automaton."""
+
+
+class Planner(Protocol):
+    """Represents an automaton's ability to plan its next steps."""
+
+    async def __call__(
+        self,
+        request: str,
+        steps_taken: Sequence[AutomatonStep],
+        reflection: Union[Sequence[str], None],
+        automaton_data: Mapping[str, Any],
+        sub_automata_data: Mapping[str, Any],
+    ) -> AutomatonAction:
+        """Plan the next step."""
         ...

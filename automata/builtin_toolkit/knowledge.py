@@ -2,12 +2,12 @@
 
 from typing import Set
 
-from automata.types import Knowledge
+from automata.types import Engine, Knowledge, Union
 
 BUILTIN_KNOWLEDGE: Set[str] = set()
 
 
-def load_builtin_knowledge(name: str) -> Knowledge:
+def load_builtin_knowledge(name: str, engine: Union[Engine, None]) -> Knowledge:
     """Load a builtin engine."""
 
     raise ValueError(

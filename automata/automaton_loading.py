@@ -7,9 +7,13 @@ from typing import Any, Mapping
 import yaml
 
 
-@lru_cache
 def load_automaton_data(automaton_path: Path) -> Mapping[str, Any]:
     """Load an automaton from a YAML file."""
+    return _load_automaton_data(automaton_path)
+
+
+@lru_cache
+def _load_automaton_data(automaton_path: Path) -> Mapping[str, Any]:
     data = yaml.load(
         (automaton_path / "spec.yml").read_text(encoding="utf-8"),
         Loader=yaml.FullLoader,

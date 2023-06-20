@@ -6,6 +6,7 @@ from typing import Sequence
 
 from .automaton_loading import load_automaton_data
 from .knowledge import load_knowledge
+from .planners import load_planner
 from .reflectors import load_reflector
 from .sessions import add_session_handling
 from .types import Automaton, AutomatonRunner, AutomatonStep
@@ -66,28 +67,28 @@ def _load_automaton(  # pylint: disable=too-many-locals
         reasoning_data = automaton_data["reasoning"]
         knowledge_name = reasoning_data["knowledge"]
         knowledge = load_knowledge(automaton_path, knowledge_name)
-        reflector_data = automaton_data["reflector"]
+        reflector_data = reasoning_data["reflector"]
         reflect = load_reflector(automaton_path, reflector_data)
         planner_data = reasoning_data["planner"]
-
-
-
-
-
-
-
-
-
-        from .planners import load_planner
-        breakpoint()
         plan = load_planner(automaton_path, planner_data)
+
+
+
+
+
+
+
+
+
 
         steps_taken: Sequence[AutomatonStep] = []
         while True:
             reflection = (
                 await reflect(request, steps_taken, knowledge) if reflect else None
             )
-            planned_action = await plan(request, steps_taken, reflection) # includes log
+            sub_automata_data = {id: load_automaton_data(automata_location / id) for id in automaton_data["sub_automata"]}
+            planned_action = await plan(request, steps_taken, reflection, automaton_data, sub_automata_data) # includes log
+            breakpoint()
 
             sub_automaton = load_automaton(planned_action.sub_automaton_id, self_session_id, automaton_id, automata_location)
             result = await sub_automaton.run(planned_action.sub_automaton_request)

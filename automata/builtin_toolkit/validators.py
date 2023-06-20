@@ -92,7 +92,7 @@ def load_builtin_validator(
 
         if not isinstance(engine, BaseLLM):
             raise ValueError(
-                f"Engine for validator `default_llm_validator` must be a LangChain `BaseLLM` object. Got {type(engine)} instead."
+                f"Engine for validator `{name}` must be a LangChain `BaseLLM` object. Got {type(engine)} instead."
             )
         input_inspector = make_llm_function(inspect_input, model=engine)
         input_inspector = partial(input_inspector, requirements=requirements)
