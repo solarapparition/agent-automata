@@ -1,22 +1,16 @@
 name: Quiz Creator
 description: Can create quizzes for a particular subject.
 rank: 1
-sub_automata:
-  - llm_assistant
-  - think
-  - save_text
-  - view_workspace
-  - load_file
-  - finalize
-validation:
+input:
   objectives:
     - To create or update quizzes.
-  input_requirements:
+  requirements:
     - must have the quiz's subject matter
     - has the difficulty of the questions
-  input_validator: null
-  output_format: null
-  output_validator: null
+  validator: null
+output:
+  format: null
+  validator: null
 reasoning:
   knowledge: null
   reflector: null
@@ -24,3 +18,8 @@ reasoning:
     name: react
     engine: gpt-3.5-turbo
 runner: core_automaton_runner
+sub_automata:
+  - llm_assistant
+  - think
+  - save_text
+  - finalize

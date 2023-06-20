@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Sequence
 
 from .automaton_loading import load_automaton_data
+from .builtin_toolkit.automaton_functions import load_builtin_function
 from .knowledge import load_knowledge
 from .planners import load_planner
 from .reflectors import load_reflector
@@ -28,6 +29,7 @@ def load_automaton(
         automata_location,
     )
 
+
 @lru_cache(maxsize=None)
 def _load_automaton(  # pylint: disable=too-many-locals
     automaton_id: str,
@@ -35,22 +37,23 @@ def _load_automaton(  # pylint: disable=too-many-locals
     requester_id: str,
     automata_location: Path,
 ) -> Automaton:
-
     self_session_id = generate_timestamp_id()
     automaton_path = automata_location / automaton_id
     automaton_data = load_automaton_data(automaton_path)
     name: str = automaton_data["name"]
     description: str = automaton_data["description"]
 
-    validation_data = automaton_data["validation"]
-    input_validator_data = validation_data["input_validator"]
-    input_requirements = tuple(validation_data["input_requirements"])
-    objectives = tuple(validation_data["objectives"])
+    input_info = automaton_data["input"]
+    input_validator_data = input_info["validator"]
+    input_requirements = input_info["requirements"]
+    objectives = input_info["objectives"]
     validate_input = load_validator(
         automaton_path, input_validator_data, input_requirements, objectives
     )
-    output_format: str = validation_data["output_format"]
-    output_validator_data = validation_data["output_validator"]
+
+    output_info = automaton_data["output"]
+    output_format: str = output_info["format"]
+    output_validator_data = output_info["validator"]
     validate_output = load_validator(
         automaton_path, output_validator_data, output_format, objectives
     )
@@ -72,48 +75,59 @@ def _load_automaton(  # pylint: disable=too-many-locals
         planner_data = reasoning_data["planner"]
         plan = load_planner(automaton_path, planner_data)
 
-
-
-
-
-
-
-
-
-
         steps_taken: Sequence[AutomatonStep] = []
         while True:
             reflection = (
                 await reflect(request, steps_taken, knowledge) if reflect else None
             )
-            sub_automata_data = {id: load_automaton_data(automata_location / id) for id in automaton_data["sub_automata"]}
-            planned_action = await plan(request, steps_taken, reflection, automaton_data, sub_automata_data) # includes log
-            breakpoint()
+            sub_automata_data = {
+                id: load_automaton_data(automata_location / id)
+                for id in automaton_data["sub_automata"]
+            }
+            planned_action, action_text = await plan(
+                request, steps_taken, reflection, automaton_data, sub_automata_data
+            )
 
-            sub_automaton = load_automaton(planned_action.sub_automaton_id, self_session_id, automaton_id, automata_location)
-            result = await sub_automaton.run(planned_action.sub_automaton_request)
-            current_step = AutomatonStep(reflection, planned_action, result)
+            sub_automaton = load_automaton(
+                planned_action.automaton_id,
+                self_session_id,
+                automaton_id,
+                automata_location,
+            )
+
+
+
+
+            result = await sub_automaton.run(planned_action.request)
+            breakpoint()
+            current_step = AutomatonStep(
+                reflection, planned_action, result, action_text
+            )
             steps_taken.append(current_step)
             break
 
         breakpoint()
-        # sub_automata_data = {
-        #     sub_automaton_id: load_automaton_data(automata_location / sub_automaton_id)
-        #     for sub_automaton_id in automaton_data["sub_automata"]
-        # }
 
     async def run_builtin_function(request: str) -> str:
+
         if validate_input:
             valid, error = await validate_input(request)
             if not valid:
                 return error
-        breakpoint()
+
+
+
+
+
+
+
         run: AutomatonRunner = load_builtin_function(
             automaton_id,
             automata_location,
             automaton_data,
             requester_id=requester_id,
         )
+        breakpoint()
         return await run(request)
 
     runner_name: str = automaton_data["runner"]
@@ -131,7 +145,7 @@ def _load_automaton(  # pylint: disable=too-many-locals
         run = run_core_automaton
     else:
         raise ValueError(
-            f"Invalid runner name: {runner_name}. Must be a .py file or one of: {{default_function_runner, default_automaton_runner}}."
+            f"Invalid runner name: {runner_name}. Must be a .py file or one of: {{builtin_function_runner, core_automaton_runner}}."
         )
 
     run = add_session_handling(

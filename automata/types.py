@@ -94,11 +94,11 @@ class Reflector(Protocol):
 class AutomatonAction:
     """Represents an action for an automaton."""
 
-    sub_automaton_id: str
-    """ID of the sub-automaton to run."""
+    automaton_id: str
+    """ID of the automaton taking an action."""
 
-    sub_automaton_request: str
-    """Request to send to the sub-automaton."""
+    request: str
+    """Request to send to the automaton."""
 
 
 class Planner(Protocol):
@@ -111,6 +111,6 @@ class Planner(Protocol):
         reflection: Union[Sequence[str], None],
         automaton_data: Mapping[str, Any],
         sub_automata_data: Mapping[str, Any],
-    ) -> AutomatonAction:
+    ) -> Tuple[AutomatonAction, str]:
         """Plan the next step."""
         ...

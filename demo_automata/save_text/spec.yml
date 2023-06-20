@@ -1,12 +1,17 @@
 name: Save Text
-description: Saves text to a file to your workspace.
-input_requirements:
+description: Can be used to save text to a file in the automaton's workspace.
+rank: 0
+input:
+  objectives: null
+  requirements:
   - "a query of the form {{\"file_name\": <file_name>, \"description\": <description>, \"content\": <text_to_save>}}"
   - <text_to_save> is a string
-input_validator:
-  engine: gpt-3.5-turbo
-  logic: default_llm_validator
-rank: 0
-engine: null
-role: worker
-runner: default_function_runner
+  validator:
+    name: default_llm_validator
+    engine: gpt-3.5-turbo
+output:
+  format: null
+  validator: null
+reasoning: null
+runner: builtin_function_runner
+sub_automata: null

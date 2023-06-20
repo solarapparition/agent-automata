@@ -1,16 +1,15 @@
 name: Text Generator
-description: A text generator that can help you create content. Cannot access local files, internet, or previous interactions.
-input_requirements:
+description: A text generator that can create content. Cannot access local files, internet, or previous interactions.
+rank: 0
+input:
+  objectives: null
+  requirements:
   - includes a descriptive request for the generated content.
   - does not reference interaction with local files, internet, or previous interactions
-input_validator:
-  engine: gpt-4
-  logic: default_llm_validator
-output_validator: null
-imperatives: null
-instructions: null
-rank: 0
-engine: gpt-3.5-turbo
-role: worker
-runner: default_function_runner
+  validator: null
+output:
+  format: null
+  validator: null
+reasoning: null
+runner: builtin_function_runner
 sub_automata: null

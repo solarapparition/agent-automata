@@ -16,7 +16,7 @@ def load_builtin_engine(name: str) -> Engine:
         model = ChatOpenAI(temperature=0, model_name=name, verbose=True)
 
         async def run_model(prompt: str, **kwargs: Any) -> str:
-            return await model.apredict(prompt)
+            return await model.apredict(prompt, **kwargs)
 
         return run_model
 
