@@ -8,7 +8,7 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-langchain = ">=0.0.142"
+langchain = "^0.0.203"
 PyYAML = "^6.0"
 openai = "^0.27.4"
 
