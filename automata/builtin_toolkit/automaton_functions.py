@@ -14,6 +14,9 @@ from langchain.prompts.chat import (
     HumanMessagePromptTemplate,
 )
 
+from automata.engines import load_engine
+from automata.types import AutomatonRunner, Engine
+
 
 def save_text_to_workspace(
     action_input: str, self_name: str, workspace_name: str
@@ -32,38 +35,42 @@ def save_text_to_workspace(
     return f"{self_name}: saved file to `{path.relative_to('workspace')}`"
 
 
-def run_llm_assistant(action_input: str, engine: BaseLLM) -> str:
+async def run_llm_assistant(request: str, engine: Engine) -> str:
     """Run an LLM assistant."""
-    template = "You are a helpful assistant who can help generate a variety of content. However, if anyone asks you to access files, or refers to something from a past interaction, you will immediately inform them that the task is not possible, and provide no further information."
-    system_message_prompt = SystemMessagePromptTemplate.from_template(template)
-    human_template = "{text}"
-    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
-    chat_prompt = ChatPromptTemplate.from_messages(
-        [system_message_prompt, human_message_prompt]
-    )
-    assistant_chain = LLMChain(llm=engine, prompt=chat_prompt)
-    return assistant_chain.run(action_input)
-
+    from langchain.schema import SystemMessage, HumanMessage
+    system_message = SystemMessage(content="You are a helpful assistant who can help generate a variety of content. However, if anyone asks you to access files, or refers to something from a past interaction, you will immediately inform them that the task is not possible, and provide no further information.")
+    request_message = HumanMessage(content=request)
+    return await engine([system_message, request_message])
+    
 
 def load_builtin_function(
-    id: str,
+    automaton_id: str,
     automata_location: Path,
     automaton_data: Mapping[str, Any],
     requester_id: str,
-) -> Callable[[str], str]:
+) -> AutomatonRunner:
     """Load an automaton function, which are basically wrappers around external functionality (including other agents)."""
 
-    breakpoint()
+    automaton_path = automata_location / automaton_id
+    extra_args: Union[None, Mapping[str, Any]] = automaton_data.get("extra_args")
 
-    run: Callable[[str], str]
-    if id == "llm_assistant":
-        if engine is None:
+    if automaton_id == "llm_assistant":
+        if (
+            extra_args is None
+            or "engine" not in extra_args
+            or extra_args["engine"] is None
+        ):
             raise ValueError(
-                "Cannot load LLM assistant without an LLM engine. Please provide an LLM engine."
+                f'Built-in automaton function `{automaton_id}` requires the "engine" value in the `extra_args` field of the spec.'
             )
-        run = partial(run_llm_assistant, engine=engine)
+        engine_name: str = extra_args["engine"]
+        engine: Engine = load_engine(automaton_path, engine_name)  # type: ignore
+        
+        return partial(run_llm_assistant, engine=engine)
 
-    elif id == "save_text":
+    elif automaton_id == "save_text":
+
+        breakpoint()
         if requester_id is None:
             raise ValueError(
                 "Cannot save file without a requester ID. Please provide a requester ID."
@@ -72,17 +79,17 @@ def load_builtin_function(
             save_text_to_workspace, self_name=full_name, workspace_name=requester_id
         )
 
-    elif id == "think":
+    elif automaton_id == "think":
         run = lambda thought: f"I must think about my next steps. {thought}"
 
-    elif id == "finalize":
+    elif automaton_id == "finalize":
         # not meant to actually be run; the finalize action should be caught by the parser first
         run = lambda _: ""
 
-    elif id == "search":
+    elif automaton_id == "search":
         run = load_tools(["google-serper"], llm=engine)[0].run
 
     else:
-        raise NotImplementedError(f"Unsupported function name: {id}.")
+        raise NotImplementedError(f"Unsupported function name: {automaton_id}.")
 
     return run

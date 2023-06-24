@@ -13,3 +13,5 @@ output:
 reasoning: null
 runner: builtin_function_runner
 sub_automata: null
+extra_args:
+  engine: gpt-3.5-turbo

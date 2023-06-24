@@ -1,6 +1,6 @@
 """Builtin LLM engines that can be used by automata."""
 
-from typing import Any
+from typing import Any, Sequence, Union
 
 from automata.types import Engine
 
@@ -15,8 +15,10 @@ def load_builtin_engine(name: str) -> Engine:
 
         model = ChatOpenAI(temperature=0, model_name=name, verbose=True)
 
-        async def run_model(prompt: str, **kwargs: Any) -> str:
-            return await model.apredict(prompt, **kwargs)
+        async def run_model(prompt: Union[str, Sequence[Any]], **kwargs: Any) -> str:
+            if isinstance(prompt, str):
+                return await model.apredict(prompt, **kwargs)
+            return (await model.apredict_messages(prompt, **kwargs)).content
 
         return run_model
 

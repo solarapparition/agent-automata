@@ -1,9 +1,15 @@
 """Planner adapted from the ReAct framework."""
 
 from string import ascii_lowercase
-from typing import Any, Mapping, Sequence, Union
+import re
+from typing import Any, Mapping, Sequence, Tuple, Union
 
 from automata.types import AutomatonStep, AutomatonAction, Engine
+
+SUB_AUTOMATON_DESCRIPTION = """`{sub_automaton_name}`:
+- Description: {description}
+- Input Requirements:
+  {input_requirements}"""
 
 DIRECTIVES = """You are simulating the output of an "Automaton" called `{name}`. Automata are advanced AI agents capable of fulfilling requests in a predictable way.
 
@@ -21,12 +27,12 @@ Reasoning Thoughtcycle:
 Reflection: `{name}` reflects abstractly upon the events that have occurred so far, as well as relevant information it can recall from its knowledge
 Thought: `{name}` analyzes its Result, Reflection and Progress Record to come to a decision about the current status of the Request 
 Progress Record: `{name}` keeps track of an itemized record of actions taken so far and their outcomes, including the names of artifacts (e.g. files) generated
-Next Action: based on the Thought and Progress Record, `{name}` constructs a concrete, achievable action that can be taken by one of its Sub-Automata to make progress on the Request
+Next Action: a concrete, achievable action that can be taken by a Sub-Automaton to make progress on the Request
 Sub-Automaton Name: the name of the Sub-Automaton to request the Next Action. MUST be one of the following: [{sub_automata_names}]
-Input Requirements: the Input Requirements of the Sub-Automaton being used, copied from above
+Sub-Automaton Input Requirements: the Input Requirements of the Sub-Automaton being used, copied from above
 Sub-Automaton Input: the request to send to the Sub-Automaton. This MUST follow any Input Requirements of the Sub-Automaton, as described above
 Result: the reply from the Sub-Automaton, which can include error messages or requests for clarification
-... (this `Reflection -> Progress Record -> Thought -> Next Action -> Sub-Automaton Name -> Input Requirements -> Sub-Automaton Input -> Result` thoughtcycle repeats until no further delegation to Sub-Automata is needed, or `{name}` determines that the Request cannot be completed)
+... (this `Reflection -> Progress Record -> Thought -> Next Action -> Sub-Automaton Name -> Sub-Automaton Input Requirements -> Sub-Automaton Input -> Result` thoughtcycle repeats until no further delegation to Sub-Automata is needed, or `{name}` determines that the Request cannot be completed)
 ```
 
 General instructions regarding the `{name}`'s work process:
@@ -37,31 +43,28 @@ General instructions regarding the `{name}`'s work process:
 
 Begin the simulation of `{name}` below, after the divider. Do not include any other text besides what `{name}` would output."""
 
-SUB_AUTOMATON_DESCRIPTION = """`{sub_automaton_name}`:
-- Description: {description}
-- Input Requirements:
-  {input_requirements}"""
-
-PROGRESS_INTRO = """
-
----`{name}`: Thoughtcycle---
+STEP_INTRO = """---`{name}`: Thoughtcycle---
 
 Reflection:
 {reflection}
 
 Thought:"""
 
-PREVIOUS_STEPS = """{progress_intro}
-{steps_text}"""
+PREVIOUS_STEP = """{STEP_INTRO}
+{plan}
 
-from typing import Tuple
-import re
+Result:
+{result}"""
+
+PROMPT = """{DIRECTIVES}
+
+{previous_steps}{STEP_INTRO}"""
 
 
 def parse_result(result: str) -> Tuple[str, str]:
     """Parse the result of the ReAct planner."""
 
-    action_regex = r"Sub-Automaton Name\s*\d*\s*:(.*?)\nInput\s*\d*\s*Requirements\s*\d*\s*:(.*?)\nSub-Automaton\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
+    action_regex = r"Sub-Automaton Name\s*\d*\s*:(.*?)\nSub-Automaton\s*\d*\s*Input\s*\d*\s*Requirements\s*\d*\s*:(.*?)\nSub-Automaton\s*\d*\s*Input\s*\d*\s*:[\s]*(.*)"
     match = re.search(action_regex, result, re.DOTALL)
 
     if not match or len(match.groups()) < 3:
@@ -108,17 +111,36 @@ async def react_planner(
         sub_automata_names=", ".join(sub_automata_names),
         sub_automata_descriptions="\n".join(sub_automata_descriptions),
     )
-    progress_intro = PROGRESS_INTRO.format(
+    step_intro = STEP_INTRO.format(
         name=automaton_name,
         reflection="\n".join(f" -{line}" for line in reflection)
         if reflection
         else "None",
     )
+    formatted_previous_steps = (
+        [
+            PREVIOUS_STEP.format(
+                STEP_INTRO=step_intro,
+                plan=step.plan_text,
+                result=step.result,
+            )
+            for step in steps_taken
+        ]
+        if steps_taken
+        else []
+    )
 
-    previous_steps_text = ""
-    prompt = directives + previous_steps_text + progress_intro
-    print(prompt)
-    result = await engine(prompt, stop=["Result:", "---"])
+    prompt = PROMPT.format(
+        DIRECTIVES=directives,
+        previous_steps="\n\n".join(formatted_previous_steps) + "\n\n"
+        if steps_taken
+        else "",
+        STEP_INTRO=step_intro,
+    )
+    if not steps_taken:
+        print(directives)
+    print("\n" + step_intro)
+    result = (await engine(prompt, stop=["Result:", "---"])).strip()
     print(result)
     delegate_name, delegate_request = parse_result(result)
 

@@ -66,7 +66,6 @@ def _load_automaton(  # pylint: disable=too-many-locals
             if not valid:
                 return error
 
-        sub_automata = automaton_data["sub_automata"]
         reasoning_data = automaton_data["reasoning"]
         knowledge_name = reasoning_data["knowledge"]
         knowledge = load_knowledge(automaton_path, knowledge_name)
@@ -74,16 +73,16 @@ def _load_automaton(  # pylint: disable=too-many-locals
         reflect = load_reflector(automaton_path, reflector_data)
         planner_data = reasoning_data["planner"]
         plan = load_planner(automaton_path, planner_data)
+        sub_automata_data = {
+            id: load_automaton_data(automata_location / id)
+            for id in automaton_data["sub_automata"]
+        }
 
         steps_taken: Sequence[AutomatonStep] = []
         while True:
             reflection = (
                 await reflect(request, steps_taken, knowledge) if reflect else None
             )
-            sub_automata_data = {
-                id: load_automaton_data(automata_location / id)
-                for id in automaton_data["sub_automata"]
-            }
             planned_action, action_text = await plan(
                 request, steps_taken, reflection, automaton_data, sub_automata_data
             )
@@ -94,32 +93,23 @@ def _load_automaton(  # pylint: disable=too-many-locals
                 automaton_id,
                 automata_location,
             )
-
-
-
-
             result = await sub_automaton.run(planned_action.request)
-            breakpoint()
+            if len(steps_taken) > 0:
+                breakpoint()
             current_step = AutomatonStep(
-                reflection, planned_action, result, action_text
+                reflection, action_text, planned_action, result
             )
             steps_taken.append(current_step)
-            break
 
-        breakpoint()
+            print("TODO: add break condition")
+
 
     async def run_builtin_function(request: str) -> str:
-
+        """Load and run a built-in function."""
         if validate_input:
             valid, error = await validate_input(request)
             if not valid:
                 return error
-
-
-
-
-
-
 
         run: AutomatonRunner = load_builtin_function(
             automaton_id,
@@ -127,8 +117,17 @@ def _load_automaton(  # pylint: disable=too-many-locals
             automaton_data,
             requester_id=requester_id,
         )
-        breakpoint()
+        
+
+
+
+
+
+
+
+
         return await run(request)
+        breakpoint()
 
     runner_name: str = automaton_data["runner"]
 

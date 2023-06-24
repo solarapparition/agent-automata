@@ -45,17 +45,38 @@ class Automaton:
 
 
 @dataclass(frozen=True)
+class AutomatonAction:
+    """Represents an action for an automaton."""
+
+    automaton_id: str
+    """ID of the automaton taking an action."""
+
+    request: str
+    """Request to send to the automaton."""
+
+
+@dataclass(frozen=True)
 class AutomatonStep:
     """Represents a step in an automaton's execution."""
 
-    ...
+    reflection: Union[Sequence[str], None]
+    """Reflection on previous steps."""
+
+    plan_text: str
+    """Text that the automaton generates describing its plan for the next step to take."""
+
+    planned_action: AutomatonAction
+    """Action that the automaton plans to take, extracted from the `plan_text`."""
+
+    result: str
+    """Result of the planned action."""
 
 
 class Engine(Protocol):
     """Interface for a language model."""
 
-    async def __call__(self, prompt: str, **kwargs: Any) -> str:
-        """Run the language model on the given prompt."""
+    async def __call__(self, prompt: Union[str, Sequence[Any]], **kwargs: Any) -> str:
+        """Run the language model on the given prompt, which is either a single string or a sequence of chat-style messages."""
         ...
 
 
@@ -88,17 +109,6 @@ class Reflector(Protocol):
     ) -> Sequence[str]:
         """Reflect on the given prompt."""
         ...
-
-
-@dataclass(frozen=True)
-class AutomatonAction:
-    """Represents an action for an automaton."""
-
-    automaton_id: str
-    """ID of the automaton taking an action."""
-
-    request: str
-    """Request to send to the automaton."""
 
 
 class Planner(Protocol):

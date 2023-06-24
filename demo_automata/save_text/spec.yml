@@ -4,11 +4,8 @@ rank: 0
 input:
   objectives: null
   requirements:
-  - "a query of the form {{\"file_name\": <file_name>, \"description\": <description>, \"content\": <text_to_save>}}"
-  - <text_to_save> is a string
-  validator:
-    name: default_llm_validator
-    engine: gpt-3.5-turbo
+  - "the input must be in this format: {\"file_name\": <file_name>, \"description\": <description>, \"content\": <text_to_save>}"
+  validator: null
 output:
   format: null
   validator: null
