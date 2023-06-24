@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "automata-core"
+name = "automata_core"
 version = "0.1.0"
 description = ""
 authors = ["Mengyang (John) Cha <15233508+solarapparition@users.noreply.github.com>"]
