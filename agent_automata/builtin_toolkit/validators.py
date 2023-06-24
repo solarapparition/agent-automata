@@ -2,7 +2,7 @@
 
 from typing import Sequence, Set
 
-from automata.types import Engine, IOValidator
+from agent_automata.types import Engine, IOValidator
 
 BUILTIN_VALIDATORS: Set[str] = set()
 

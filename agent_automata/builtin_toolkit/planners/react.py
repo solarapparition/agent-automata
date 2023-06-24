@@ -4,7 +4,7 @@ from string import ascii_lowercase
 import re
 from typing import Any, Mapping, Sequence, Tuple, Union
 
-from automata.types import AutomatonStep, AutomatonAction, Engine
+from agent_automata.types import AutomatonStep, AutomatonAction, Engine
 
 SUB_AUTOMATON_DESCRIPTION = """`{sub_automaton_name}`:
 - Description: {description}

@@ -5,8 +5,8 @@ import json
 from pathlib import Path
 from typing import Any, Callable, Mapping, Union
 
-from automata.engines import load_engine
-from automata.types import AutomatonRunner, Engine
+from agent_automata.engines import load_engine
+from agent_automata.types import AutomatonRunner, Engine
 
 
 async def save_text_to_workspace(

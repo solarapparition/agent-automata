@@ -3,7 +3,7 @@
 from functools import partial
 from typing import Set, Union
 
-from automata.types import Engine, Planner
+from agent_automata.types import Engine, Planner
 from .react import react_planner
 
 BUILTIN_PLANNERS: Set[str] = {"react"}

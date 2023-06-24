@@ -2,7 +2,7 @@
 
 from typing import Set, Union
 
-from automata.types import Engine, Reflector
+from agent_automata.types import Engine, Reflector
 
 BUILTIN_REFLECTORS: Set[str] = set()
 

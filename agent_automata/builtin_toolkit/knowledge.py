@@ -2,7 +2,7 @@
 
 from typing import Set
 
-from automata.types import Engine, Knowledge, Union
+from agent_automata.types import Engine, Knowledge, Union
 
 BUILTIN_KNOWLEDGE: Set[str] = set()
 

@@ -6,8 +6,8 @@ import sys
 
 sys.path.append("")
 
-from automata.utilities import generate_timestamp_id
-from automata.automaton import load_automaton
+from agent_automata.utilities import generate_timestamp_id
+from agent_automata.automaton import load_automaton
 
 async def demo():
     """Run a demo automaton."""

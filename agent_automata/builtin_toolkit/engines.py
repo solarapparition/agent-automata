@@ -2,7 +2,7 @@
 
 from typing import Any, Sequence, Union
 
-from automata.types import Engine
+from agent_automata.types import Engine
 
 BUILTIN_ENGINES = {"gpt-3.5-turbo", "gpt-4"}
 
