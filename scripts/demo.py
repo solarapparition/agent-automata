@@ -21,6 +21,7 @@ async def demo():
     result = await automaton.run(
         "Create a quiz having the subject matter of mathematics, and a difficulty at a freshman college level. Include 10 questions in the quiz, then write it to a file called `math_quiz.txt`."
     )
+    print(result)
 
 if __name__ == "__main__":
     asyncio.run(demo())

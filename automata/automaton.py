@@ -94,15 +94,13 @@ def _load_automaton(  # pylint: disable=too-many-locals
                 automata_location,
             )
             result = await sub_automaton.run(planned_action.request)
-            if len(steps_taken) > 0:
-                breakpoint()
             current_step = AutomatonStep(
                 reflection, action_text, planned_action, result
             )
             steps_taken.append(current_step)
 
-            print("TODO: add break condition")
-
+            if planned_action.automaton_id == "finalize":
+                return result
 
     async def run_builtin_function(request: str) -> str:
         """Load and run a built-in function."""
@@ -117,17 +115,7 @@ def _load_automaton(  # pylint: disable=too-many-locals
             automaton_data,
             requester_id=requester_id,
         )
-        
-
-
-
-
-
-
-
-
         return await run(request)
-        breakpoint()
 
     runner_name: str = automaton_data["runner"]
 
