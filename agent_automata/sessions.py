@@ -27,8 +27,8 @@ def add_session_handling(
     requester_session_id: str,
 ) -> AutomatonRunner:
     """Handle errors and printouts during execution of a query."""
-    preprint = f"\n\n---{automaton_name}: Start---"
-    postprint = f"\n\n---{automaton_name}: End---"
+    preprint = f"\n\n---{automaton_name}: Start---\n\n"
+    postprint = f"\n\n---{automaton_name}: End---\n\n"
 
     @functools.wraps(run)
     async def wrapper(request: str):

@@ -75,11 +75,13 @@ def load_builtin_function(
     elif automaton_id == "think":
 
         async def run(request: str) -> str:
+            print(f"Thinking about: {request}")
             return request
 
     elif automaton_id == "finalize":
 
         async def run(request: str) -> str:
+            print(f"Final Result:\n{request}")
             return request
 
     else:
