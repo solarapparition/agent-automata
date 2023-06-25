@@ -144,7 +144,18 @@ async def react_planner(
     print(result)
     delegate_name, delegate_request = parse_result(result)
 
-    delegate_id = next(
-        id for id, data in sub_automata_data.items() if data["name"] == delegate_name
-    )
+    try:
+        delegate_id = next(
+            id
+            for id, data in sub_automata_data.items()
+            if data["name"] == delegate_name
+        )
+    except StopIteration:
+        return (
+            AutomatonAction(
+                "think",
+                f"The Sub-Automaton Name must be one of the following: {sub_automata_names}",
+            ),
+            result,
+        )
     return AutomatonAction(delegate_id, delegate_request), result
