@@ -53,10 +53,6 @@ def _load_automaton(  # pylint: disable=too-many-locals
 
     output_info = automaton_data["output"]
     output_format: str = output_info["format"]
-    output_validator_data = output_info["validator"]
-    validate_output = load_validator(
-        automaton_path, output_validator_data, output_format, objectives
-    )
 
     async def run_core_automaton(request: str) -> str:
         """Run a core automaton."""
