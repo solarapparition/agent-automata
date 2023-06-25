@@ -1,0 +1,14 @@
+name: Think
+description: Use to think more deeply about the request. Use this when trying to analyze and break down challenging problems.
+rank: 0
+input:
+  objectives: null
+  requirements:
+  - includes a topic to think about
+  validator: null
+output:
+  format: null
+  validator: null
+reasoning: null
+runner: builtin_function_runner
+sub_automata: null
