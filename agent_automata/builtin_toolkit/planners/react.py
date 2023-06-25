@@ -88,6 +88,11 @@ async def react_planner(
 ) -> Tuple[AutomatonAction, str]:
     """Planner adapted from the ReAct framework."""
 
+    if "think" not in sub_automata_data:
+        raise ValueError(
+            "The ReAct planner requires a sub-automaton named `think` to be defined."
+        )
+
     sub_automata_names = [f'"{data["name"]}"' for data in sub_automata_data.values()]
     sub_automata_descriptions = [
         SUB_AUTOMATON_DESCRIPTION.format(

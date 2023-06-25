@@ -57,6 +57,11 @@ def _load_automaton(  # pylint: disable=too-many-locals
     async def run_core_automaton(request: str) -> str:
         """Run a core automaton."""
 
+        sub_automata = automaton_data["sub_automata"]
+        if "think" not in sub_automata:
+            raise ValueError(
+                f"Core automaton runner: `{automaton_id}` must have a `finalize` sub-automaton defined."
+            )
         if validate_input:
             valid, error = await validate_input(request)
             if not valid:
@@ -71,7 +76,7 @@ def _load_automaton(  # pylint: disable=too-many-locals
         plan = load_planner(automaton_path, planner_data)
         sub_automata_data = {
             id: load_automaton_data(automata_location / id)
-            for id in automaton_data["sub_automata"]
+            for id in sub_automata
         }
 
         steps_taken: Sequence[AutomatonStep] = []
