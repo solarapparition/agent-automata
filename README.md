@@ -1,7 +1,7 @@
 # Agent Automata
 
 ## Introduction
-Agent automata is a lightweight orchestration architecture for a hierarchical group of modular, autonomous agents, with the goal of composing actions from simple autonomous agents into complex collective behavior.
+`agent-automata` is a lightweight orchestration architecture for a hierarchical group of modular, autonomous agents, with the goal of composing actions from simple autonomous agents into complex collective behavior.
 
 The core idea behind this architecture is that instead of having a complex central agent managing many commands and sub-agents, or a fixed set of agents with specific roles in a task loop, we modify Langchain agents to be able to call each other as tools, and then establish a hierarchical, rank-based structure to control the direction of the calls:
 ```
