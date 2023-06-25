@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agent_automata"
-version = "0.1.1"
+version = "0.1.2"
 description = ""
 authors = ["Mengyang (John) Cha <15233508+solarapparition@users.noreply.github.com>"]
 license = "MIT"
@@ -8,15 +8,16 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.10"
-PyYAML = "^6.0"
+PyYAML = ">=6.0"
+langchain = { version = ">=0.0.203", optional = true }
+openai = { version = ">=0.27.4", optional = true }
 
-[tool.poetry.group.builtins.dependencies]
-langchain = "^0.0.203"
-openai = "^0.27.4"
+[tool.poetry.extras]
+builtins = ["langchain", "openai"]
 
 [tool.poetry.group.dev.dependencies]
-pylint = "^2.17.2"
-black = "^23.3.0"
+pylint = ">=2.17.2"
+black = ">=23.3.0"
 
 [build-system]
 requires = ["poetry-core"]
